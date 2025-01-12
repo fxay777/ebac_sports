@@ -1,12 +1,13 @@
 import React from 'react'
-import { useSelector, useDispatch } from 'react-redux'
+import { useSelector } from 'react-redux'
 import Header from './components/Header'
 import Produtos from './containers/Produtos'
 import { GlobalStyle } from './styles'
-import { useGetProductsQuery } from '../src/components/services/api'
-import { addItem as addToCart } from '../src/components/Store/cartSlice'
-import { toggleFavorite } from '../src/components/Store/favoritesSlice'
-import { RootState } from '../src/components/Store'
+import { useGetProductsQuery } from './components/services/api'
+import { useAppDispatch } from './components/Store/store' // Use o dispatch tipado
+import { addItem as addToCart } from './components/Store/cartSlice'
+import { toggleFavorite } from './components/Store/favoritesSlice'
+import { RootState } from './components/Store/store'
 
 export type Produto = {
   id: number
@@ -16,20 +17,33 @@ export type Produto = {
 }
 
 function App() {
-  const dispatch = useDispatch()
+  const dispatch = useAppDispatch() // Dispatch tipado
+
   const { data: produtos = [] } = useGetProductsQuery()
+
   const carrinho = useSelector((state: RootState) => state.cart.items)
   const favoritos = useSelector((state: RootState) => state.favorites.items)
 
-  function adicionarAoCarrinho(produto: Produto) {
-    if (carrinho.some(p => p.id === produto.id)) {
+  const adicionarAoCarrinho = (produto: Produto) => {
+    const produtoExistente = carrinho.find((p) => p.id === produto.id)
+
+    if (produtoExistente) {
       alert('Item já adicionado')
-    } else {
-      dispatch(addToCart({ ...produto, quantity: 1 }))
+      return
     }
+
+    dispatch(
+      addToCart({
+        id: produto.id,
+        title: produto.nome,
+        price: produto.preco,
+        image: produto.imagem,
+        quantity: 1
+      })
+    )
   }
 
-  function favoritar(produto: Produto) {
+  const favoritar = (produto: Produto) => {
     dispatch(toggleFavorite(produto))
   }
 
@@ -37,7 +51,15 @@ function App() {
     <>
       <GlobalStyle />
       <div className="container">
-        <Header favoritos={favoritos} itensNoCarrinho={carrinho} />
+        <Header
+          favoritos={favoritos}
+          itensNoCarrinho={carrinho.map((item) => ({
+            id: item.id,
+            nome: item.title,
+            preco: item.price,
+            imagem: item.image
+          }))}
+        />
         <Produtos
           produtos={produtos}
           favoritos={favoritos}
