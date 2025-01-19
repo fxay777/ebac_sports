@@ -1,13 +1,11 @@
 import React from 'react'
-import { useSelector } from 'react-redux'
+import { useAppDispatch, useAppSelector } from './components/store/hooks'
 import Header from './components/Header'
 import Produtos from './containers/Produtos'
 import { GlobalStyle } from './styles'
 import { useGetProductsQuery } from './components/services/api'
-import { useAppDispatch } from './components/Store/store' // Use o dispatch tipado
-import { addItem as addToCart } from './components/Store/cartSlice'
-import { toggleFavorite } from './components/Store/favoritesSlice'
-import { RootState } from './components/Store/store'
+import { addItem as addToCart } from './components/Cart/cartSlice'
+import { toggleFavorite } from './components/Cart/favoritesSlice'
 
 export type Produto = {
   id: number
@@ -16,19 +14,32 @@ export type Produto = {
   imagem: string
 }
 
+export type CartItem = {
+  id: number
+  title: string
+  price: number
+  image: string
+  quantity: number
+}
+
 function App() {
-  const dispatch = useAppDispatch() // Dispatch tipado
+  const dispatch = useAppDispatch()
 
-  const { data: produtos = [] } = useGetProductsQuery()
+  // Busca os produtos da API
+  const { data: produtos = [] } = useGetProductsQuery(undefined)
 
-  const carrinho = useSelector((state: RootState) => state.cart.items)
-  const favoritos = useSelector((state: RootState) => state.favorites.items)
+  // Seletores para carrinho e favoritos
+  const carrinho = useAppSelector((state) => state.cart.items)
+  const favoritos = useAppSelector((state) => state.favorites.items)
 
+  // Função para adicionar produto ao carrinho
   const adicionarAoCarrinho = (produto: Produto) => {
-    const produtoExistente = carrinho.find((p) => p.id === produto.id)
+    const produtoExistente = carrinho.find(
+      (item: CartItem) => item.id === produto.id
+    )
 
     if (produtoExistente) {
-      alert('Item já adicionado')
+      alert('Item já adicionado ao carrinho.')
       return
     }
 
@@ -43,6 +54,7 @@ function App() {
     )
   }
 
+  // Função para favoritar/desfavoritar produto
   const favoritar = (produto: Produto) => {
     dispatch(toggleFavorite(produto))
   }
@@ -53,7 +65,7 @@ function App() {
       <div className="container">
         <Header
           favoritos={favoritos}
-          itensNoCarrinho={carrinho.map((item) => ({
+          itensNoCarrinho={carrinho.map((item: CartItem) => ({
             id: item.id,
             nome: item.title,
             preco: item.price,

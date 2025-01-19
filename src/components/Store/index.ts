@@ -14,6 +14,5 @@ const store = configureStore({
 })
 
 export type RootState = ReturnType<typeof store.getState> // Tipo do estado global
-export type AppDispatch = typeof store.dispatch
-
+export type AppDispatch = typeof store.dispatch // Tipo do dispatch
 export default store

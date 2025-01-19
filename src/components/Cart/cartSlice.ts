@@ -4,6 +4,7 @@ export type CartItem = {
   id: number
   title: string
   price: number
+  image: string // Adicionando a propriedade "image"
   quantity: number
 }
 
@@ -24,12 +25,15 @@ const cartSlice = createSlice({
         (item) => item.id === action.payload.id
       )
       if (itemIndex >= 0) {
+        // Incrementa a quantidade se o item já estiver no carrinho
         state.items[itemIndex].quantity += action.payload.quantity
       } else {
+        // Adiciona o novo item ao carrinho
         state.items.push(action.payload)
       }
     },
     removeItem: (state, action: PayloadAction<number>) => {
+      // Remove o item do carrinho pelo ID
       state.items = state.items.filter((item) => item.id !== action.payload)
     }
   }
